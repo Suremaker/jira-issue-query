@@ -1,9 +1,8 @@
 using System.Text.Json;
 using Humanizer;
-using JiraMetrics.Api.Controllers;
-using JiraMetrics.Api.Models;
+using JiraIssueQuery.Api.Models;
 
-namespace JiraMetrics.Api.Mappers;
+namespace JiraIssueQuery.Api.Mappers;
 
 public class JiraIssueMapper
 {

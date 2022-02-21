@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace JiraMetrics.Api.Mappers;
+namespace JiraIssueQuery.Api.Mappers;
 
 static class Extensions
 {

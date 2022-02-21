@@ -1,4 +1,4 @@
-﻿namespace JiraMetrics.Api.Clients
+﻿namespace JiraIssueQuery.Api.Clients
 {
     public class IssueContent
     {

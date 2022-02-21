@@ -1,17 +1,19 @@
 ﻿using System.Text.Json;
-using JiraMetrics.Api.Models;
+using JiraIssueQuery.Api.Models;
 using Microsoft.Extensions.Options;
 
-namespace JiraMetrics.Api.Clients
+namespace JiraIssueQuery.Api.Clients
 {
     public class JiraClient : IJiraClient
     {
         private readonly IHttpClientFactory _clientFactory;
+        private readonly ILogger<JiraClient> _logger;
         private readonly SemaphoreSlim _requestThrottler;
 
-        public JiraClient(IOptions<Config> config, IHttpClientFactory clientFactory)
+        public JiraClient(IOptions<Config> config, IHttpClientFactory clientFactory,ILogger<JiraClient> logger)
         {
             _clientFactory = clientFactory;
+            _logger = logger;
             _requestThrottler = new SemaphoreSlim(config.Value.JiraQueryThroughput);
         }
 
@@ -73,6 +75,7 @@ namespace JiraMetrics.Api.Clients
         {
             try
             {
+                _logger.LogInformation("Querying: {query}", query);
                 await _requestThrottler.WaitAsync();
                 using var resp = await client.GetAsync(query);
                 resp.EnsureSuccessStatusCode();

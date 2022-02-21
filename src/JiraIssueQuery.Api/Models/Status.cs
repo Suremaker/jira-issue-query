@@ -1,4 +1,4 @@
-﻿namespace JiraMetrics.Api.Models;
+﻿namespace JiraIssueQuery.Api.Models;
 
 public record Status
 {

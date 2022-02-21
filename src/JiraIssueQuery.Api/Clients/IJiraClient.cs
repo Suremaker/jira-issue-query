@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
-using JiraMetrics.Api.Models;
+using JiraIssueQuery.Api.Models;
 
-namespace JiraMetrics.Api.Clients
+namespace JiraIssueQuery.Api.Clients
 {
     public interface IJiraClient
     {

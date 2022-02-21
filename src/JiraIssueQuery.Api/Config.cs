@@ -1,4 +1,4 @@
-namespace JiraMetrics.Api
+namespace JiraIssueQuery.Api
 {
     public class Config
     {

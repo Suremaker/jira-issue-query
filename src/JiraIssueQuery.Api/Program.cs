@@ -1,7 +1,7 @@
 using System.Net.Http.Headers;
 using System.Text;
-using JiraMetrics.Api;
-using JiraMetrics.Api.Clients;
+using JiraIssueQuery.Api;
+using JiraIssueQuery.Api.Clients;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 
@@ -37,6 +37,7 @@ builder.Services.AddSwaggerGen(c =>
 		}
 	});
 });
+builder.Services.AddResponseCaching();
 builder.Services.AddSingleton<IJiraClient, JiraClient>();
 
 builder.Services.Configure<Config>(builder.Configuration.GetSection("Config"));
@@ -59,7 +60,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+app.UseResponseCaching();
 app.UseAuthorization();
 app.UseHeaderPropagation();
 

@@ -1,11 +1,10 @@
 using System.Text.Json;
-using System.Text.Json.Nodes;
-using JiraMetrics.Api.Clients;
-using JiraMetrics.Api.Mappers;
-using JiraMetrics.Api.Models;
+using JiraIssueQuery.Api.Clients;
+using JiraIssueQuery.Api.Mappers;
+using JiraIssueQuery.Api.Models;
 using Microsoft.AspNetCore.Mvc;
 
-namespace JiraMetrics.Api.Controllers
+namespace JiraIssueQuery.Api.Controllers
 {
     [ApiController]
     [Route("[controller]")]
@@ -19,6 +18,7 @@ namespace JiraMetrics.Api.Controllers
         }
 
         [HttpGet("field-names")]
+        [ResponseCache(Duration = 60 * 5)]
         public async Task<IReadOnlyDictionary<string, string>> GetFieldNames()
         {
             return await _client.QueryFieldKeyToName();
@@ -31,6 +31,7 @@ namespace JiraMetrics.Api.Controllers
         }
 
         [HttpGet("issues-simplified")]
+        [ResponseCache(Duration = 60 * 5)]
         public async Task<IEnumerable<JiraIssue>> QuerySimplifiedIssues(string jql, string? select)
         {
             var mapper = new JiraIssueMapper(await _client.QueryFieldKeyToName(), await _client.QueryStatuses());
