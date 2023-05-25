@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Net;
+using System.Text.Json;
 using JiraIssueQuery.Api.Models;
 using Microsoft.Extensions.Options;
 
@@ -86,7 +87,11 @@ namespace JiraIssueQuery.Api.Clients
                     var errorResponse = await resp.Content.ReadAsStringAsync(cancellationToken);
                     _logger.LogError(errorResponse);
                 }
+
+                if (resp.StatusCode == HttpStatusCode.BadRequest)
+                    throw new JiraException(await resp.Content.ReadFromJsonAsync<JiraErrorDetails>(cancellationToken: cancellationToken));
                 resp.EnsureSuccessStatusCode();
+
                 await using var stream = await resp.Content.ReadAsStreamAsync(cancellationToken);
                 return await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken);
             }

@@ -1,6 +1,7 @@
 using System.Text.Json;
 using JiraIssueQuery.Api.Aggregators;
 using JiraIssueQuery.Api.Clients;
+using JiraIssueQuery.Api.Filters;
 using JiraIssueQuery.Api.Mappers;
 using JiraIssueQuery.Api.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -9,6 +10,7 @@ namespace JiraIssueQuery.Api.Controllers
 {
     [ApiController]
     [Route("[controller]")]
+    [TypeFilter(typeof(ExceptionFilter))]
     public class JiraController : ControllerBase
     {
         private readonly IJiraClient _client;
