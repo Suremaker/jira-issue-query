@@ -10,14 +10,14 @@ namespace JiraIssueQuery.Api.Clients
         private readonly ILogger<JiraClient> _logger;
         private readonly SemaphoreSlim _requestThrottler;
 
-        public JiraClient(IOptions<Config> config, IHttpClientFactory clientFactory,ILogger<JiraClient> logger)
+        public JiraClient(IOptions<Config> config, IHttpClientFactory clientFactory, ILogger<JiraClient> logger)
         {
             _clientFactory = clientFactory;
             _logger = logger;
             _requestThrottler = new SemaphoreSlim(config.Value.JiraQueryThroughput);
         }
 
-        public async Task<IReadOnlyList<JsonElement>> QueryJql(string jqlQuery, string? expand, string? select)
+        public async Task<IReadOnlyList<JsonElement>> QueryJql(string jqlQuery, string? expand, string? select, CancellationToken cancellationToken)
         {
             jqlQuery = Uri.EscapeDataString(jqlQuery);
             var elements = new List<JsonElement>();
@@ -32,7 +32,7 @@ namespace JiraIssueQuery.Api.Clients
                 if (!string.IsNullOrEmpty(select))
                     query += $"&fields={select}";
 
-                var doc = await GetDocument(client, query);
+                var doc = await GetDocument(client, query, cancellationToken);
                 var issues = doc.RootElement.GetProperty("issues");
 
                 elements.AddRange(issues.EnumerateArray());
@@ -46,19 +46,21 @@ namespace JiraIssueQuery.Api.Clients
             return elements;
         }
 
-        public async Task<IReadOnlyDictionary<string, string>> QueryFieldKeyToName()
+        public async Task<IReadOnlyList<FieldDetails>> QueryFields(CancellationToken cancellationToken)
         {
-            var doc = await GetDocument(GetClient(), "/rest/api/2/field");
+            var doc = await GetDocument(GetClient(), "/rest/api/3/field", cancellationToken);
 
-            return doc.RootElement.EnumerateArray()
-                .ToDictionary(
-                    x => x.GetProperty("key").GetString()!,
-                    x => x.GetProperty("name").GetString()!);
+            return doc.RootElement.EnumerateArray().Select(x => FieldDetails.From(
+                    x.GetProperty("key").GetString()!,
+                    x.GetProperty("name").GetString()!,
+                    x.GetProperty("clauseNames").EnumerateArray().Select(n => n.GetString()!).ToArray()
+                ))
+                .ToArray();
         }
 
-        public async Task<IEnumerable<Status>> QueryStatuses()
+        public async Task<IReadOnlyList<Status>> QueryStatuses(CancellationToken cancellationToken)
         {
-            var doc = await GetDocument(GetClient(), "/rest/api/3/status");
+            var doc = await GetDocument(GetClient(), "/rest/api/3/status", cancellationToken);
 
             return doc.RootElement.EnumerateArray()
                 .Select(x => new Status
@@ -66,21 +68,27 @@ namespace JiraIssueQuery.Api.Clients
                     Id = x.GetProperty("id").GetString()!,
                     Name = x.GetProperty("name").GetString()!,
                     Category = x.GetProperty("statusCategory").GetProperty("key").GetString()!
-                });
+                })
+                .ToArray();
         }
 
         private HttpClient GetClient() => _clientFactory.CreateClient(nameof(IJiraClient));
 
-        private async Task<JsonDocument> GetDocument(HttpClient client, string query)
+        private async Task<JsonDocument> GetDocument(HttpClient client, string query, CancellationToken cancellationToken)
         {
             try
             {
                 _logger.LogInformation("Querying: {query}", query);
-                await _requestThrottler.WaitAsync();
-                using var resp = await client.GetAsync(query);
+                await _requestThrottler.WaitAsync(cancellationToken);
+                using var resp = await client.GetAsync(query, cancellationToken);
+                if (!resp.IsSuccessStatusCode)
+                {
+                    var errorResponse = await resp.Content.ReadAsStringAsync(cancellationToken);
+                    _logger.LogError(errorResponse);
+                }
                 resp.EnsureSuccessStatusCode();
-                await using var stream = await resp.Content.ReadAsStreamAsync();
-                return await JsonDocument.ParseAsync(stream);
+                await using var stream = await resp.Content.ReadAsStreamAsync(cancellationToken);
+                return await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken);
             }
             finally
             {

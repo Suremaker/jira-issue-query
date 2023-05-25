@@ -5,6 +5,8 @@ VisualStudioVersion = 17.0.32126.317
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JiraIssueQuery.Api", "src\JiraIssueQuery.Api\JiraIssueQuery.Api.csproj", "{5856B548-89A7-481D-916B-0CA25943822E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JiraIssueQuery.Api.UnitTests", "test\JiraIssueQuery.Api.UnitTests\JiraIssueQuery.Api.UnitTests.csproj", "{460810A8-BDF5-4904-A961-E5DF3090AFA8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{5856B548-89A7-481D-916B-0CA25943822E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5856B548-89A7-481D-916B-0CA25943822E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5856B548-89A7-481D-916B-0CA25943822E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{460810A8-BDF5-4904-A961-E5DF3090AFA8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{460810A8-BDF5-4904-A961-E5DF3090AFA8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{460810A8-BDF5-4904-A961-E5DF3090AFA8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{460810A8-BDF5-4904-A961-E5DF3090AFA8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

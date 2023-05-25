@@ -1,14 +1,17 @@
-using System.Net.Http.Headers;
-using System.Text;
+using System.Text.Json.Serialization;
 using JiraIssueQuery.Api;
+using JiraIssueQuery.Api.Aggregators;
 using JiraIssueQuery.Api.Clients;
+using JiraIssueQuery.Api.Mappers;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddJsonOptions(options =>
+	options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -39,25 +42,25 @@ builder.Services.AddSwaggerGen(c =>
 });
 builder.Services.AddResponseCaching();
 builder.Services.AddSingleton<IJiraClient, JiraClient>();
+builder.Services.AddSingleton<IReferenceDataMapper, ReferenceDataMapper>();
+builder.Services.AddSingleton<JiraIssueMapper>();
+builder.Services.AddSingleton<IssueAggregator>();
 
 builder.Services.Configure<Config>(builder.Configuration.GetSection("Config"));
+builder.Services.Configure<MappingConfig>(builder.Configuration.GetSection("Mappings"));
 builder.Services.AddHttpClient(nameof(IJiraClient), (sp, client) =>
-{
-	var cfg = sp.GetRequiredService<IOptions<Config>>().Value;
-	client.BaseAddress = new Uri(cfg.JiraUri);
-	client.DefaultRequestHeaders.Add("ContentType", "application/json");
-})
+	{
+		var cfg = sp.GetRequiredService<IOptions<Config>>().Value;
+		client.BaseAddress = new Uri(cfg.JiraUri);
+		client.DefaultRequestHeaders.Add("ContentType", "application/json");
+	})
 	.AddHeaderPropagation();
 builder.Services.AddHeaderPropagation(options => { options.Headers.Add("Authorization"); });
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-	app.UseSwagger();
-	app.UseSwaggerUI();
-}
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 app.UseResponseCaching();
